@@ -2,6 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
+from reply_module import *
 
 import requests
 from flask import Flask, request
@@ -39,8 +40,10 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
+                    message_nlp = messaging_event["message"]["nlp"]["entities"] # the message's nlp json
+                    message_reply = reply_handler_nlp(message_nlp, message_text)
 
-                    send_message(sender_id, "roger that!")
+                    send_message(sender_id, message_reply)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -54,9 +57,9 @@ def webhook():
     return "ok", 200
 
 
-def send_message(recipient_id, message_text):
+def send_message(sender_id, message_text):
 
-    log("sending message to {recipient}: {text}".format(recipient=recipient_id, text=message_text))
+    log("sending message to {recipient}: {text}".format(recipient=sender_id, text=message_text))
 
     params = {
         "access_token": os.environ["PAGE_ACCESS_TOKEN"]
@@ -66,7 +69,7 @@ def send_message(recipient_id, message_text):
     }
     data = json.dumps({
         "recipient": {
-            "id": recipient_id
+            "id": sender_id
         },
         "message": {
             "text": message_text
