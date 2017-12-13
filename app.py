@@ -52,7 +52,11 @@ def webhook():
                     pass
 
                 if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    pass
+                    message_payload = messaging_event["postback"]["payload"] # Message's Payload
+                    message_reply = reply_handler_payload(message_payload) #reply_module.py
+                    sender_id = messaging_event["sender"]["id"]
+
+                    send_message(sender_id, message_reply)
 
     return "ok", 200
 

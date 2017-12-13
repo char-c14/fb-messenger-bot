@@ -10,3 +10,12 @@ def reply_handler_nlp(message_nlp, message_text):
 		reply = "LoL"
 	
 	return reply
+
+def reply_handler_payload(payload):
+	pass
+	if payload == "help":
+		reply = "No Help. Contact a coordie whose lukkha :P"
+	else:
+		return 0 
+
+	return reply
