@@ -42,8 +42,10 @@ def webhook():
                     message_text = messaging_event["message"]["text"]  # the message's text
                     message_nlp = messaging_event["message"]["nlp"]["entities"] # the message's nlp json
                     message_reply = reply_handler_nlp(message_nlp, message_text)
+                    button_bool = 0
+                    button_data = ""
 
-                    send_message(sender_id, message_reply)
+                    send_message(sender_id, message_reply, button_bool, button_data)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -53,15 +55,15 @@ def webhook():
 
                 if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
                     message_payload = messaging_event["postback"]["payload"] # Message's Payload
-                    message_reply = reply_handler_payload(message_payload) #reply_module.py
                     sender_id = messaging_event["sender"]["id"]
+                    [message_reply, button_bool, button_data] = reply_handler_payload(message_payload) #reply_module.py
 
-                    send_message(sender_id, message_reply)
+                    send_message(sender_id, message_reply, button_bool, button_data)
 
     return "ok", 200
 
 
-def send_message(sender_id, message_text):
+def send_message(sender_id, message_text, button_bool, button_data):
 
     log("sending message to {recipient}: {text}".format(recipient=sender_id, text=message_text))
 
@@ -71,14 +73,26 @@ def send_message(sender_id, message_text):
     headers = {
         "Content-Type": "application/json"
     }
-    data = json.dumps({
-        "recipient": {
-            "id": sender_id
-        },
-        "message": {
-            "text": message_text
-        }
-    })
+
+    if button_bool:
+        data = json.dumps({
+            "recipient": {
+                "id": sender_id
+            },
+            "message": {
+                "text": message_text,
+                "quick_replies": button_data
+            }
+        })
+    else:
+        data = json.dumps({
+            "recipient": {
+                "id": sender_id
+            },
+            "message": {
+                "text": message_text
+            }
+        })
     r = requests.post("https://graph.facebook.com/v2.6/me/messages", params=params, headers=headers, data=data)
     if r.status_code != 200:
         log(r.status_code)
